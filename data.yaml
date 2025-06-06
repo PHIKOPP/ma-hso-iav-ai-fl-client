@@ -1,0 +1,13 @@
+names:
+  0: person
+  1: bicycle
+  2: car
+  3: motorcycle
+  4: bus
+  5: truck
+  6: traffic_light
+  7: stop_sign
+nc: 8
+test: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\test
+train: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\train
+val: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\val
