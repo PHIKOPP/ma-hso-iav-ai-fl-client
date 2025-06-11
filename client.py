@@ -14,9 +14,14 @@ from ultralytics import YOLO
 import os
 import requests
 import zipfile
+import time
 
 MODEL_PATH = "pretrainedModel.pt"
 MODEL_URL = "https://github.com/user-attachments/files/20605529/pretrainedModel.zip"
+
+import os
+os.environ["HF_HUB_DISABLE_SSL_VERIFICATION"] = "1"
+
 
 if not os.path.exists(MODEL_PATH):
     print("📥 Lade Modell...")
@@ -28,8 +33,7 @@ if not os.path.exists(MODEL_PATH):
     print("✅ Modell entpackt")
 
 MODEL_DEF = MODEL_PATH
-SERVER_ADDRESS = "192.168.1.71:9090"
-
+SERVER_ADDRESS = "192.168.1.69:8080"
 
 def count_train_samples(data_yaml: str) -> int:
     with open(data_yaml) as f:
@@ -53,6 +57,7 @@ class YOLOFlowerClient(NumPyClient):
         # Lokale Sample-Anzahl dynamisch aus Datenordner
         self.local_samples = count_train_samples(self.data_yaml)
         print(f"Local Samples {self.local_samples}")
+        self.already_trained = False
 
     def get_parameters(self, config):
         # einfach das gecachte Modell zurückgeben
@@ -60,6 +65,12 @@ class YOLOFlowerClient(NumPyClient):
 
     def fit(self, parameters: list[np.ndarray], config) -> tuple[list[np.ndarray], int, dict]:
         # ─── SANITY‐CHECK VOR DEM LADEN ───
+        if self.already_trained:
+            print("⚠️ Kein Training durchgeführt – Rückgabe leerer Ergebnisse.")
+            # Gebe die Parameter unverändert zurück, mit 0 Samples und leerem Dict
+            Timer(4, lambda: os._exit(0)).start()
+            return parameters, 0, {} 
+        self.model = YOLO(MODEL_DEF)  # Statt self.model
         means_before = [float(x.mean()) for x in parameters[:3]]
         print(f"CHECK 1 [Client {Path(self.data_yaml).stem}] 🔍 Received global means (first 3 tensors): {means_before}")
 
@@ -90,10 +101,12 @@ class YOLOFlowerClient(NumPyClient):
         # 4) Extrahiere Updates
         updated = [v.cpu().numpy() for v in self.model.model.state_dict().values()]
         print(f"Returning Fit, {self.local_samples}, {train_metrics}")
+        self.already_trained = True
         return updated, self.local_samples, train_metrics
 
     def evaluate(self, parameters: list[np.ndarray], config) -> tuple[float, int, dict]:
         # 1) Lade globale Gewichte
+        self.model = YOLO(MODEL_DEF)  # Statt self.model
         sd_keys = list(self.model.model.state_dict().keys())
         loaded = OrderedDict(
             {k: torch.tensor(v) for k, v in zip(sd_keys, parameters)}
@@ -115,7 +128,6 @@ class YOLOFlowerClient(NumPyClient):
         print(f"Returning Evaluate {loss}, {self.local_samples}, {metrics}")
 
         # 4) Prozess kurz verzögern und beenden
-        Timer(0.1, lambda: os._exit(0)).start()
         return loss, self.local_samples, metrics
 
 # ---------- main -------------------------------------------------------------
@@ -123,7 +135,7 @@ def main() -> None:
      # Öffne die Datei im Lesemodus und lese den aktuellen Zähler.
     fl.client.start_numpy_client(
         server_address=SERVER_ADDRESS,
-        client=YOLOFlowerClient("data.yaml"),
+        client=YOLOFlowerClient("data.yaml")
     )
 
 if __name__ == "__main__":
@@ -150,7 +162,7 @@ if __name__ == "__main__":
         repo_id=repo_id,
         repo_type="dataset",  # <<< DAS IST ENTSCHEIDEND
         local_dir=f"./datasets/argoverse_{drive_id_str}",
-        local_dir_use_symlinks=False
+        local_dir_use_symlinks=False,
     )
 
 
