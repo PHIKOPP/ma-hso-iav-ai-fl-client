@@ -21,6 +21,26 @@ MODEL_URL = "https://github.com/user-attachments/files/20605529/pretrainedModel.
 
 import os
 os.environ["HF_HUB_DISABLE_SSL_VERIFICATION"] = "1"
+import os
+
+# .env manuell einlesen
+env_path = ".env"
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
+                os.environ[key.strip()] = value.strip()
+
+# Zugriff auf Variable
+API_TOKEN = os.environ.get("API_TOKEN")
+# Optional: Fehler anzeigen
+if not API_TOKEN:
+    raise RuntimeError("❌ API_TOKEN nicht gefunden! .env fehlt oder ist leer.")
+
+print(f"🔐 Verwende Token: {API_TOKEN[:6]}...")  # gekürzt anzeigen
+
 
 
 if not os.path.exists(MODEL_PATH):
