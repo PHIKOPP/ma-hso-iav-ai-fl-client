@@ -198,12 +198,20 @@ if __name__ == "__main__":
 
     login(API_TOKEN)  # nur nötig bei privaten Repos
     # Lokal herunterladen
-    dataset_path = snapshot_download(
-        repo_id=repo_id,
-        repo_type="dataset",  # <<< DAS IST ENTSCHEIDEND
-        local_dir=f"./datasets/argoverse_{drive_id_str}",
-        local_dir_use_symlinks=False,
-    )
+    dataset_local_path = f"./datasets/argoverse_{drive_id_str}"
+    if not os.path.exists(dataset_local_path):
+        print(f"📥 Lade Dataset {repo_id}...")
+        dataset_path = snapshot_download(
+            repo_id=repo_id,
+            repo_type="dataset",
+            local_dir=dataset_local_path,
+            local_dir_use_symlinks=False,
+            resume_download=True
+        )
+    else:
+        print(f"✅ Dataset {repo_id} bereits vorhanden.")
+        dataset_path = dataset_local_path
+
 
 
     # Pfade für YOLO anpassen
