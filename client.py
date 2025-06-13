@@ -18,6 +18,7 @@ import time
 
 MODEL_PATH = "pretrainedModel.pt"
 MODEL_URL = "https://github.com/user-attachments/files/20605529/pretrainedModel.zip"
+repo_id = -1
 
 import os
 os.environ["HF_HUB_DISABLE_SSL_VERIFICATION"] = "1"
@@ -40,6 +41,21 @@ if not API_TOKEN:
     raise RuntimeError("❌ API_TOKEN nicht gefunden! .env fehlt oder ist leer.")
 
 print(f"🔐 Verwende Token: {API_TOKEN[:6]}...")  # gekürzt anzeigen
+
+import socket
+
+def get_local_ip():
+    try:
+        # Verbindung zu einem beliebigen externen Ziel herstellen (ohne sie tatsächlich zu senden)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))  # Google DNS als Dummy-Ziel
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception as e:
+        return f"❌ Fehler: {e}"
+
+print(f"📡 Lokale IP-Adresse: {get_local_ip()}")
 
 
 
@@ -90,6 +106,7 @@ class YOLOFlowerClient(NumPyClient):
             # Gebe die Parameter unverändert zurück, mit 0 Samples und leerem Dict
             Timer(4, lambda: os._exit(0)).start()
             return parameters, 0, {} 
+        start_time = time.time()
         self.model = YOLO(MODEL_DEF)  # Statt self.model
         means_before = [float(x.mean()) for x in parameters[:3]]
         print(f"CHECK 1 [Client {Path(self.data_yaml).stem}] 🔍 Received global means (first 3 tensors): {means_before}")
@@ -116,6 +133,9 @@ class YOLOFlowerClient(NumPyClient):
         train_metrics = {
             "box_loss": float(getattr(results, "box_loss", 0.0)),
             "cls_loss": float(getattr(results, "cls_loss", 0.0)),
+            "train_duration": time.time() - start_time,
+            "drive_id": repo_id,
+            "ip": get_local_ip()
         }
 
         # 4) Extrahiere Updates

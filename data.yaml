@@ -8,6 +8,6 @@ names:
   6: traffic_light
   7: stop_sign
 nc: 8
-test: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\test
-train: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\train
-val: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_01\val
+test: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_02\test
+train: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_02\train
+val: C:\Users\I011815\Documents\Programing\ma-hso-iav-ai-fl-client\datasets\argoverse_02\val
