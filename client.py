@@ -135,7 +135,9 @@ class YOLOFlowerClient(NumPyClient):
             "cls_loss": float(getattr(results, "cls_loss", 0.0)),
             "train_duration": time.time() - start_time,
             "drive_id": repo_id,
-            "ip": get_local_ip()
+            "ip": get_local_ip(),
+            "epochs": EPOCHS,
+            "img_size": IMG_SIZE
         }
 
         # 4) Extrahiere Updates
